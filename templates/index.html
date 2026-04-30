@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crop Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --hero-bg-start: #1a4a2e;
+            --hero-bg-end: #2d7a4f;
+            --primary-green: #2d7a4f;
+            --primary-green-hover: #1a4a2e;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --input-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --muted-text: #6c757d;
+        }
+
+        [data-bs-theme="dark"] {
+            --hero-bg-start: #0d2517;
+            --hero-bg-end: #163d27;
+            --card-bg: #212529;
+            --text-color: #f8f9fa;
+            --input-bg: #2b3035;
+            --border-color: #495057;
+            --muted-text: #adb5bd;
+        }
+
+        body {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--hero-bg-start) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--hero-bg-start), var(--hero-bg-end));
+            position: relative;
+            padding: 4rem 0 6rem;
+            color: white;
+            overflow: hidden;
+        }
+        
+        /* Grid pattern overlay */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .badge-chip {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.25rem;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .badge-chip:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Form Card */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-top: -3rem;
+            padding: 2.5rem;
+            position: relative;
+            z-index: 10;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            margin-top: 2rem;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+            margin-left: 1rem;
+        }
+        .section-label:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Input Fields */
+        .form-label-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .icon-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .bg-n { background-color: #20c997; } /* Green */
+        .bg-p { background-color: #0d6efd; } /* Blue */
+        .bg-k { background-color: #ffc107; color: #000; } /* Amber */
+        .bg-t { background-color: #ff7f50; } /* Coral */
+        .bg-h { background-color: #20c997; } /* Teal */
+        .bg-ph { background-color: #6f42c1; } /* Purple */
+        .bg-r { background-color: #0dcaf0; color: #000; } /* Light Blue */
+
+        .unit-text {
+            font-size: 0.75rem;
+            color: var(--muted-text);
+            margin-top: 0.25rem;
+        }
+
+        .dual-input-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type="range"].form-range {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            margin: 0;
+            padding: 10px 0;
+        }
+        
+        input[type="range"].form-range:focus {
+            outline: none;
+        }
+
+        /* WebKit/Blink Track */
+        input[type="range"].form-range::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: linear-gradient(to right, #2d7a4f var(--val, 50%), #e9ecef var(--val, 50%));
+            border-radius: 4px;
+            border: none;
+        }
+        [data-bs-theme="dark"] input[type="range"].form-range::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, #20c997 var(--val, 50%), #495057 var(--val, 50%));
+        }
+
+        /* WebKit/Blink Thumb */
+        input[type="range"].form-range::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2d7a4f;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 0 2px var(--card-bg);
+        }
+        [data-bs-theme="dark"] input[type="range"].form-range::-webkit-slider-thumb {
+            background: #20c997;
+        }
+
+        /* Firefox Track */
+        input[type="range"].form-range::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #e9ecef;
+            border-radius: 4px;
+            border: none;
+        }
+        [data-bs-theme="dark"] input[type="range"].form-range::-moz-range-track {
+            background: #495057;
+        }
+
+        /* Firefox Progress */
+        input[type="range"].form-range::-moz-range-progress {
+            background-color: #2d7a4f;
+            height: 8px;
+            border-radius: 4px;
+        }
+        [data-bs-theme="dark"] input[type="range"].form-range::-moz-range-progress {
+            background-color: #20c997;
+        }
+
+        /* Firefox Thumb */
+        input[type="range"].form-range::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2d7a4f;
+            cursor: pointer;
+            border: 2px solid var(--card-bg);
+        }
+        [data-bs-theme="dark"] input[type="range"].form-range::-moz-range-thumb {
+            background: #20c997;
+        }
+        
+        .number-input {
+            width: 60px;
+            border: none;
+            background: transparent;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-color);
+            outline: none;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-radius: 50rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(45, 122, 79, 0.3);
+        }
+        .btn-submit:hover {
+            background-color: var(--primary-green-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(45, 122, 79, 0.4);
+            color: white;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #20c997, var(--primary-green));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .result-crop-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-box {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .tip-box {
+            background-color: rgba(45, 122, 79, 0.1);
+            border-left: 4px solid var(--primary-green);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            color: var(--text-color);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+                <i class="bi bi-leaf-fill text-success"></i> Crop Recommendation
+            </a>
+            <button class="theme-toggle ms-auto" id="themeToggle" aria-label="Toggle theme">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="hero-title">Crop Recommendation System</h1>
+            <p class="lead mb-4 opacity-75">Enter your soil & climate data to find the ideal crop for your land.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <div class="badge-chip"><span class="fs-5">🌱</span> Soil Analysis</div>
+                <div class="badge-chip"><span class="fs-5">🌦</span> Climate Data</div>
+                <div class="badge-chip"><span class="fs-5">🤖</span> ML Powered</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <div class="main-card">
+            <form action="/predict" method="POST">
+                
+                <!-- SOIL NUTRIENTS -->
+                <div class="section-label">Soil Nutrients</div>
+                <div class="row g-4 mb-4">
+                    <!-- Nitrogen -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-n">N</span>
+                            <label for="Nitrogen">Nitrogen</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="N_slider" min="0" max="140" value="50" oninput="syncInput('N_slider', 'Nitrogen', true)">
+                            <input type="number" class="number-input" id="Nitrogen" name="Nitrogen" min="0" max="140" value="50" required oninput="syncInput('Nitrogen', 'N_slider', false)">
+                        </div>
+                        <div class="unit-text">kg/ha</div>
+                    </div>
+                    <!-- Phosphorus -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-p">P</span>
+                            <label for="Phosporus">Phosphorus</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="P_slider" min="5" max="145" value="40" oninput="syncInput('P_slider', 'Phosporus', true)">
+                            <input type="number" class="number-input" id="Phosporus" name="Phosporus" min="5" max="145" value="40" required oninput="syncInput('Phosporus', 'P_slider', false)">
+                        </div>
+                        <div class="unit-text">kg/ha</div>
+                    </div>
+                    <!-- Potassium -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-k">K</span>
+                            <label for="Potassium">Potassium</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="K_slider" min="5" max="205" value="40" oninput="syncInput('K_slider', 'Potassium', true)">
+                            <input type="number" class="number-input" id="Potassium" name="Potassium" min="5" max="205" value="40" required oninput="syncInput('Potassium', 'K_slider', false)">
+                        </div>
+                        <div class="unit-text">kg/ha</div>
+                    </div>
+                </div>
+
+                <!-- CLIMATE CONDITIONS -->
+                <div class="section-label">Climate Conditions</div>
+                <div class="row g-4 mb-4">
+                    <!-- Temperature -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-t">T</span>
+                            <label for="Temperature">Temperature</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="T_slider" min="8" max="44" step="0.1" value="25" oninput="syncInput('T_slider', 'Temperature', true)">
+                            <input type="number" class="number-input" id="Temperature" name="Temperature" min="8" max="44" step="0.1" value="25" required oninput="syncInput('Temperature', 'T_slider', false)">
+                        </div>
+                        <div class="unit-text">°C</div>
+                    </div>
+                    <!-- Humidity -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-h">H</span>
+                            <label for="Humidity">Humidity</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="H_slider" min="14" max="100" step="0.1" value="60" oninput="syncInput('H_slider', 'Humidity', true)">
+                            <input type="number" class="number-input" id="Humidity" name="Humidity" min="14" max="100" step="0.1" value="60" required oninput="syncInput('Humidity', 'H_slider', false)">
+                        </div>
+                        <div class="unit-text">%</div>
+                    </div>
+                    <!-- pH -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-ph">pH</span>
+                            <label for="Ph">pH Level</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="pH_slider" min="3.5" max="9.9" step="0.01" value="6.5" oninput="syncInput('pH_slider', 'Ph', true)">
+                            <input type="number" class="number-input" id="Ph" name="Ph" min="3.5" max="9.9" step="0.01" value="6.5" required oninput="syncInput('Ph', 'pH_slider', false)">
+                        </div>
+                        <div class="unit-text">0–14</div>
+                    </div>
+                </div>
+
+                <!-- RAINFALL -->
+                <div class="section-label">Rainfall</div>
+                <div class="row g-4 mb-5">
+                    <!-- Rainfall -->
+                    <div class="col-md-4">
+                        <div class="form-label-wrapper">
+                            <span class="icon-badge bg-r"><i class="bi bi-cloud-rain-fill"></i></span>
+                            <label for="Rainfall">Rainfall</label>
+                        </div>
+                        <div class="dual-input-group">
+                            <input type="range" class="form-range" id="R_slider" min="20" max="300" step="0.1" value="100" oninput="syncInput('R_slider', 'Rainfall', true)">
+                            <input type="number" class="number-input" id="Rainfall" name="Rainfall" min="20" max="300" step="0.1" value="100" required oninput="syncInput('Rainfall', 'R_slider', false)">
+                        </div>
+                        <div class="unit-text">mm</div>
+                    </div>
+                </div>
+
+                <!-- SUBMIT BUTTON -->
+                <div class="text-center mt-2">
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-plus-circle me-2"></i> Get Recommendation
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RESULT CARD -->
+        {% if result %}
+        <div class="result-card mx-auto" style="max-width: 800px;" id="resultSection">
+            <div class="result-header">
+                <span class="badge bg-light text-dark rounded-pill mb-3 px-3 py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-stars text-success"></i> {% if 'Sorry' in result %}Analysis Result{% else %}Recommended Crop{% endif %}
+                </span>
+                
+                <h2 class="result-crop-name">
+                    {% if 'Sorry' not in result %}
+                        {{ result.split(' ')[0] | capitalize }} 🌾
+                    {% else %}
+                        No Match Found ⚠️
+                    {% endif %}
+                </h2>
+                <p class="mt-2 mb-0 text-white opacity-75">
+                    {% if 'Sorry' not in result %}
+                        Based on your provided soil and climate parameters
+                    {% else %}
+                        {{ result }}
+                    {% endif %}
+                </p>
+            </div>
+            
+            {% if 'Sorry' not in result %}
+            <div class="p-4 p-md-5">
+                <div class="row g-4">
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-value">94%</div>
+                            <div class="stat-label">Confidence</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-value">Kharif</div>
+                            <div class="stat-label">Season</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <div class="stat-value"><i class="bi bi-droplet-fill text-info"></i></div>
+                            <div class="stat-label">Water Need</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-box d-flex gap-3">
+                    <i class="bi bi-lightbulb-fill text-warning fs-4 mt-1"></i>
+                    <div>
+                        <strong>Expert Tip:</strong>
+                        <p class="mb-0 mt-1">Ensure proper drainage during heavy rainfall and monitor nitrogen levels closely during the vegetative growth phase for optimal yields.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Auto-scroll to result -->
+        <script>
+            window.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        </script>
+        {% endif %}
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sync sliders and number inputs
+        function updateRangeBackground(sliderId) {
+            const slider = document.getElementById(sliderId);
+            const min = parseFloat(slider.min) || 0;
+            const max = parseFloat(slider.max) || 100;
+            const val = parseFloat(slider.value);
+            const percentage = ((val - min) / (max - min)) * 100;
+            slider.style.setProperty('--val', percentage + '%');
+        }
+
+        function syncInput(sourceId, targetId, isSlider) {
+            const source = document.getElementById(sourceId);
+            const target = document.getElementById(targetId);
+            target.value = source.value;
+            
+            if (isSlider) {
+                updateRangeBackground(sourceId);
+            } else {
+                updateRangeBackground(targetId);
+            }
+        }
+
+        // Initialize backgrounds
+        window.addEventListener('DOMContentLoaded', () => {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => updateRangeBackground(slider.id));
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        let currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+        applyTheme(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(currentTheme);
+            localStorage.setItem('theme', currentTheme);
+        });
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            if (theme === 'dark') {
+                themeIcon.classList.remove('bi-moon-fill');
+                themeIcon.classList.add('bi-sun-fill');
+            } else {
+                themeIcon.classList.remove('bi-sun-fill');
+                themeIcon.classList.add('bi-moon-fill');
+            }
+        }
+    </script>
+</body>
+</html>
